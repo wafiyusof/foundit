@@ -36,13 +36,3 @@ FoundIt! - Campus Lost & Found Portal
    * Click **Claim Item** on any card (pre-filled with Matric ID `2026123456` for quick testing) to move the item into the **Claims History** table.
    * Toggle **Dark Mode** in the bottom-left sidebar to switch between the White & Gold and Black & Gold themes.
 
----
-
-## Frameworks, Libraries & Technologies Used
-
-* **HTML5 & CSS3:** Semantic structure, custom CSS variables for theming, and smooth keyframe transitions.
-* **JavaScript (ES6+):** DOM manipulation, `localStorage` authentication handling, and dynamic CRUD state management.
-* **[Bootstrap 5.3.0](https://getbootstrap.com/):** Responsive grid system, modals, nav pills, cards, and utility classes.
-* **[Bootstrap Icons 1.10.5](https://icons.getbootstrap.com/):** Vector iconography across navigation, badges, and item categories.
-* **[Chart.js](https://www.chartjs.org/):** Interactive, responsive data visualization for campus location analytics.
-* **[Google Fonts](https://fonts.google.com/):** *Playfair Display* for headings and *DM Sans* for clean, legible body copy.
