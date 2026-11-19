@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundIt! - Campus Lost & Found</title>
+    
+    <!-- Google Fonts: Poppins & DM Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Favicon (Website Icon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔎</text></svg>">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* General structural CSS - Colors removed to prevent conflicts */
+        body { 
+            min-height: 100vh; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        th { white-space: nowrap; }
+        
+        /* Smooth Page Transitions */
+        .page-section { 
+            display: none; 
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .page-section.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sidebar Styling (Left Navigation) */
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .main-wrapper {
+            min-height: 100vh;
+            width: 100%;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+        .main-wrapper.logged-in {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-wrapper.logged-in { margin-left: 0; width: 100%; }
+        }
+    </style>
+
+    <style id="black-gold-premium-theme">
+        :root {
+            /* Light Mode: White & Gold */
+            --theme-accent: #d6ad55;
+            --theme-accent-bright: #f0cf7a;
+            --theme-accent-dark: #b88b3c;
+            --theme-bg: #f8f9fa;
+            --theme-panel: #ffffff;
+            --theme-text: #1a1a1a;
+            --theme-text-muted: #6c757d;
+            --theme-border: rgba(214,173,85, 0.4);
+            --theme-shadow: rgba(0,0,0,0.05);
+            --theme-btn-text: #ffffff;
+        }
+
+        body.dark-mode {
+            /* Dark Mode: Black & Gold */
+            --theme-accent: #f0cf7a;
+            --theme-accent-bright: #f4d98f;
+            --theme-accent-dark: #b88b3c;
+            --theme-bg: #090a0c;
+            --theme-panel: #17191e;
+            --theme-text: #f5f1e7;
+            --theme-text-muted: #aaa394;
+            --theme-border: rgba(214,173,85, 0.25);
+            --theme-shadow: rgba(0,0,0,0.45);
+            --theme-btn-text: #17120a;
+        }
+
+        html { scroll-behavior: smooth; }
+        body, body.bg-light {
+            font-family: 'DM Sans', sans-serif !important;
+            color: var(--theme-text) !important;
+            background: var(--theme-bg) !important;
+        }
+        h1, h2, h3, h4, h5, .display-4, .display-6,
+        #mainNav .fs-4 {
+            font-family: 'Playfair Display', serif !important;
+            letter-spacing: -.025em;
+        }
+        p, small, label, input, button, select, textarea, table {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--theme-panel) !important;
+            border-right: 1px solid var(--theme-border);
+            box-shadow: 12px 0 40px var(--theme-shadow) !important;
+            position: relative;
+            overflow: hidden;
+            padding: 1.6rem !important;
+        }
+        #mainNav > a:first-child {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.55rem !important;
+            color: var(--theme-accent) !important;
+            letter-spacing: -.04em;
+        }
+        #mainNav > a:first-child i { color: var(--theme-accent); }
+        .sidebar hr { border-color: var(--theme-border) !important; opacity: 1; }
+        .sidebar .nav-link {
+            color: var(--theme-text-muted) !important;
+            border: 1px solid transparent;
+            border-radius: 13px;
+            padding: .9rem 1rem;
+            transition: .25s ease;
+            font-weight: 500;
+        }
+        .sidebar .nav-link i { color: var(--theme-accent); }
+        .sidebar .nav-link:hover {
+            color: var(--theme-text) !important;
+            background: rgba(214,173,85,.08);
+            border-color: var(--theme-border);
+            transform: translateX(3px);
+        }
+        .sidebar .nav-link.active {
+            color: var(--theme-btn-text) !important;
+            background: var(--theme-accent) !important;
+            border-color: var(--theme-accent-dark);
+            box-shadow: inset 3px 0 0 var(--theme-accent-dark);
+        }
+        .sidebar .nav-link.active i {
+            color: var(--theme-btn-text) !important;
+        }
+        #darkModeToggle {
+            border-color: var(--theme-border) !important;
+            color: var(--theme-text) !important;
+        }
+        #mainNav .btn-light {
+            background: var(--theme-panel) !important;
+            color: var(--theme-text) !important;
+            border: 1px solid var(--theme-border);
+        }
+
+        /* Main area */
+        #mainContainer { padding-top: 2.7rem !important; padding-bottom: 3rem !important; }
+        .page-section > h2, .page-section .d-flex h2 {
+            color: var(--theme-text) !important;
+            font-size: clamp(1.8rem, 3vw, 2.45rem);
+            margin-bottom: 1.6rem !important;
+        }
+        .page-section > h2 i { color: var(--theme-accent) !important; }
+        .text-primary { color: var(--theme-accent) !important; }
+        .text-secondary, .text-muted { color: var(--theme-text-muted) !important; }
+        .text-dark { color: var(--theme-text) !important; }
+        .bg-white, .bg-light { background-color: var(--theme-panel) !important; }
+        .border, .border-bottom, .border-top { border-color: var(--theme-border) !important; }
+
+        /* Cards */
+        .card {
+            color: var(--theme-text);
+            background: var(--theme-panel) !important;
+            border: 1px solid var(--theme-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 16px 42px var(--theme-shadow) !important;
+            overflow: hidden;
+            transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease;
+        }
+        .card-hover:hover, .card:hover {
+            border-color: var(--theme-accent) !important;
+            box-shadow: 0 20px 48px var(--theme-shadow) !important;
+            transform: translateY(-5px);
+        }
+        .card-header {
+            color: var(--theme-text) !important;
+            background: rgba(214,173,85,.06) !important;
+            border-bottom: 1px solid var(--theme-border) !important;
+            border-radius: 18px 18px 0 0 !important;
+        }
+        .card-body { color: var(--theme-text); }
+        .card-title { color: var(--theme-text); }
+
+        /* Stat tiles */
+        .bg-gradient-info, .bg-gradient-warning, .bg-gradient-success,
+        .bg-gradient-danger, .bg-gradient-primary {
+            background: var(--theme-panel) !important;
+            border: 1px solid var(--theme-border) !important;
+            position: relative;
+        }
+        .bg-gradient-info .card-body, .bg-gradient-warning .card-body,
+        .bg-gradient-success .card-body, .bg-gradient-danger .card-body {
+            position: relative; z-index: 1;
+        }
+        .bg-gradient-info h3, .bg-gradient-warning h3,
+        .bg-gradient-success h3, .bg-gradient-danger h3, .bg-gradient-primary h3 {
+            color: var(--theme-accent) !important;
+            font-family: 'Playfair Display', serif !important;
+            font-size: 2.5rem;
+        }
+        .bg-gradient-info h6, .bg-gradient-warning h6,
+        .bg-gradient-success h6, .bg-gradient-danger h6, .bg-gradient-primary h6 {
+            color: var(--theme-text-muted) !important;
+            letter-spacing: .035em;
+            text-transform: uppercase;
+            font-size: .72rem;
+        }
+
+        /* Buttons and tabs */
+        .btn {
+            border-radius: 12px;
+            font-weight: 700;
+            letter-spacing: .01em;
+            padding: .72rem 1.1rem;
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .btn-primary, .btn-success, #loginForm .btn, #registerForm .btn {
+            color: var(--theme-btn-text) !important;
+            background: var(--theme-accent) !important;
+            border: 1px solid var(--theme-accent-dark) !important;
+            box-shadow: 0 8px 22px var(--theme-shadow);
+        }
+        .btn-outline-primary {
+            color: var(--theme-accent) !important;
+            border-color: var(--theme-accent) !important;
+        }
+        .btn-outline-primary:hover { background: rgba(214,173,85,.12) !important; }
+        .btn-light {
+            color: var(--theme-text) !important;
+            background: var(--theme-panel) !important;
+            border-color: var(--theme-border) !important;
+        }
+        .nav-pills .nav-link {
+            color: var(--theme-text-muted);
+            border-radius: 11px;
+        }
+        .nav-pills .nav-link.active {
+            color: var(--theme-btn-text) !important;
+            background: var(--theme-accent) !important;
+        }
+
+        /* Inputs */
+        .form-control, .form-select {
+            color: var(--theme-text) !important;
+            background: var(--theme-bg) !important;
+            border: 1px solid var(--theme-border) !important;
+            border-radius: 12px !important;
+            min-height: 48px;
+        }
+        .form-control::placeholder { color: var(--theme-text-muted) !important; }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--theme-accent) !important;
+            box-shadow: 0 0 0 .22rem var(--theme-border) !important;
+        }
+        .form-label { color: var(--theme-text) !important; }
+        .form-select option { background: var(--theme-panel); color: var(--theme-text); }
+
+        /* Tables, badges, modals */
+        .table { color: var(--theme-text) !important; --bs-table-bg: transparent; --bs-table-color: var(--theme-text); }
+        .table thead th {
+            color: var(--theme-accent) !important;
+            background: rgba(214,173,85,.07) !important;
+            border-bottom-color: var(--theme-border) !important;
+            letter-spacing: .08em;
+        }
+        .table td, .table th { border-color: var(--theme-border) !important; }
+        .table-hover tbody tr:hover { color: var(--theme-text) !important; background: rgba(214,173,85,.06) !important; }
+        .badge.bg-light { color: var(--theme-text) !important; background: var(--theme-bg) !important; border-color: var(--theme-border) !important; }
+        .modal-content {
+            color: var(--theme-text) !important;
+            background: var(--theme-panel) !important;
+            border: 1px solid var(--theme-border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 25px 80px rgba(0,0,0,.35);
+        }
+        .modal-header, .modal-footer { border-color: var(--theme-border) !important; }
+        .btn-close { filter: invert(0.5); }
+        body.dark-mode .btn-close { filter: invert(1) grayscale(1); }
+        footer { color: var(--theme-text-muted) !important; }
+
+        /* Login screen */
+        #login-page { max-width: 490px !important; }
+        #login-page .card {
+            padding: 2.6rem !important;
+            border-radius: 26px !important;
+            background: var(--theme-panel) !important;
+            border: 1px solid var(--theme-border) !important;
+            box-shadow: 0 28px 90px var(--theme-shadow) !important;
+        }
+        #login-page .display-4 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 82px; height: 82px;
+            border-radius: 24px;
+            color: var(--theme-btn-text) !important;
+            background: var(--theme-accent);
+            box-shadow: 0 12px 35px var(--theme-shadow);
+            font-size: 2.6rem;
+        }
+        #login-page h2 {
+            color: var(--theme-accent) !important;
+            font-size: 2.5rem;
+            margin-top: .7rem;
+        }
+        #login-page .text-muted { color: var(--theme-text-muted) !important; }
+        #login-page .form-control { background: var(--theme-bg) !important; }
+        #login-page .nav-pills { padding: 5px; background: var(--theme-bg); border: 1px solid var(--theme-border); border-radius: 14px; }
+        #login-page .nav-pills .nav-link:not(.active) { color: var(--theme-text-muted); }
+
+        /* Mobile header */
+        #mobileHeader {
+            background: var(--theme-panel) !important;
+            border-bottom: 1px solid var(--theme-border);
+        }
+        #mobileHeader h5 { color: var(--theme-accent); font-family: 'Playfair Display', serif !important; }
+        @media (max-width: 768px) {
+            #mainContainer { padding: 1.5rem 1rem !important; }
+            #login-page .card { padding: 1.7rem !important; }
+            .page-section > h2 { font-size: 1.8rem; }
+            .bg-gradient-info h3, .bg-gradient-warning h3,
+            .bg-gradient-success h3, .bg-gradient-danger h3 { font-size: 2rem; }
+        }
+    </style>
+
+</head>
+<body class="bg-light">
+
+    <!-- Main Flex Container -->
+    <div class="d-flex min-vh-100 flex-column flex-md-row position-relative">
+
+    <!-- Responsive Left Sidebar (Hidden on Login) -->
+    <nav id="mainNav" class="sidebar bg-gradient-primary d-none flex-column p-4 shadow">
+        <a href="javascript:void(0)" class="d-flex align-items-center mb-4 text-white text-decoration-none" onclick="showPage('dashboard-page')">
+            <span class="fs-4 fw-bold"><i class="bi bi-search-heart"></i> FoundIt!</span>
+        </a>
+        <hr class="text-white-50">
+        <ul class="nav nav-pills flex-column mb-auto gap-2">
+            <li class="nav-item">
+                <a href="javascript:void(0)" class="nav-link active" onclick="showPage('dashboard-page')">
+                    <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:void(0)" class="nav-link" onclick="showPage('lost-items-page')">
+                    <i class="bi bi-box-seam-fill me-2"></i> Lost Items Board
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:void(0)" class="nav-link" onclick="showPage('claims-history-page')">
+                    <i class="bi bi-clock-history me-2"></i> Claims History
+                </a>
+            </li>
+        </ul>
+        <hr class="text-white-50">
+        <div class="d-flex flex-column gap-2 mt-3">
+            <button class="btn btn-outline-light w-100 text-start fw-medium" id="darkModeToggle" title="Toggle Dark Mode">
+                <i class="bi bi-moon-stars-fill me-2"></i> Dark Mode
+            </button>
+            <button class="btn btn-light text-primary fw-bold w-100 text-start" onclick="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div id="mainWrapper" class="main-wrapper d-flex flex-column w-100">
+        
+        <!-- Mobile Header (Visible only on small screens) -->
+        <div id="mobileHeader" class="d-none bg-gradient-primary text-white p-3 align-items-center justify-content-start gap-3 shadow-sm">
+            <button class="btn btn-outline-light btn-sm border-0 px-2 py-1" onclick="toggleSidebar()"><i class="bi bi-list fs-1"></i></button>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-search-heart"></i> FoundIt!</h5>
+        </div>
+
+        <main class="container-fluid flex-grow-1 py-5 px-md-5 d-flex flex-column justify-content-center" id="mainContainer">
+            
+            <!-- ==================== LOGIN & REGISTRATION PAGE ==================== -->
+            <div id="login-page" class="page-section active mx-auto" style="width: 100%; max-width: 450px;">
+                <div class="card p-5 shadow-lg">
+                    <div class="text-center mb-4">
+                        <div class="display-4 text-primary mb-2"><i class="bi bi-search-heart"></i></div>
+                        <h2 class="fw-bold" style="color: #764ba2;">FoundIt!</h2>
+                        <p class="text-muted">Campus Lost & Found Portal</p>
+                    </div>
+                    
+                    <div id="loginAlert" class="alert alert-danger d-none rounded-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <span id="loginAlertMsg">Invalid credentials.</span>
+                    </div>
+
+                    <!-- Auth Tabs -->
+                    <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold" id="tab-login" data-bs-toggle="pill" data-bs-target="#form-login" type="button" role="tab">Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold" id="tab-register" data-bs-toggle="pill" data-bs-target="#form-register" type="button" role="tab">Register</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="authTabsContent">
+                        <!-- Login Form -->
+                        <div class="tab-pane fade show active" id="form-login" role="tabpanel">
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Student Email</label>
+                                    <input type="email" class="form-control form-control-lg bg-light" id="email" value="student@uitm.edu.my" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold text-secondary">Password</label>
+                                    <input type="password" class="form-control form-control-lg bg-light" id="password" value="password123" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">Login</button>
+                            </form>
+                            <div class="text-center mt-4">
+                                <small class="text-muted"><i class="bi bi-info-circle"></i> Try default credentials or register a new one</small>
+                            </div>
+                        </div>
+
+                        <!-- Registration Form -->
+                        <div class="tab-pane fade" id="form-register" role="tabpanel">
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">New Student Email</label>
+                                    <input type="email" class="form-control form-control-lg bg-light" id="regEmail" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold text-secondary">Create Password</label>
+                                    <input type="password" class="form-control form-control-lg bg-light" id="regPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm border-0">Create Account</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== DASHBOARD PAGE ==================== -->
+            <div id="dashboard-page" class="page-section w-100">
+                <h2 class="mb-4 fw-bold text-dark"><i class="bi bi-grid-1x2-fill text-primary"></i> Dashboard</h2>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="card bg-gradient-info shadow text-white h-100 card-hover">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-semibold">Total Reports</h6>
+                                <h3 class="display-6 fw-bold mb-0" id="stat-total">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card bg-gradient-warning shadow text-white h-100 card-hover">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-semibold">Active Lost Items</h6>
+                                <h3 class="display-6 fw-bold mb-0" id="stat-active">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card bg-gradient-success shadow text-white h-100 card-hover">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-semibold">Items Claimed</h6>
+                                <h3 class="display-6 fw-bold mb-0" id="stat-claimed">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="card bg-gradient-danger shadow text-white h-100 card-hover">
+                            <div class="card-body p-3">
+                                <h6 class="card-title fw-semibold">Recovery Rate</h6>
+                                <h3 class="display-6 fw-bold mb-0" id="stat-recovery">0%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Data Visualisation & Insights -->
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
+                                <h5 class="mb-0 fw-bold text-secondary">Lost Items by Campus Location</h5>
+                            </div>
+                            <div class="card-body d-flex justify-content-center">
+                                <div style="position: relative; height:300px; width:100%; display: flex; justify-content: center;">
+                                    <canvas id="locationChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white pt-4 pb-2 border-bottom">
+                                <h5 class="mb-0 fw-bold text-secondary"><i class="bi bi-lightbulb-fill text-warning"></i> Quick Insights</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column justify-content-center gap-4">
+                                <div>
+                                    <small class="text-muted fw-bold text-uppercase">Top Missing Category</small>
+                                    <h4 class="fw-bold text-primary mb-0 mt-1" id="insight-category">-</h4>
+                                </div>
+                                <div>
+                                    <small class="text-muted fw-bold text-uppercase">Latest Reported Item</small>
+                                    <h5 class="fw-bold text-dark mb-1 mt-1" id="insight-latest-name">-</h5>
+                                    <span class="badge bg-light text-secondary border" id="insight-latest-loc">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== LOST ITEMS BOARD ==================== -->
+            <div id="lost-items-page" class="page-section w-100">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                    <h2 class="fw-bold text-dark mb-0"><i class="bi bi-box-seam-fill text-primary"></i> Lost Items Board</h2>
+                    <button class="btn btn-primary fw-bold shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;" data-bs-toggle="modal" data-bs-target="#reportItemModal">
+                        <i class="bi bi-plus-lg"></i> Report Found Item
+                    </button>
+                </div>
+                <div class="row row-cols-1 row-cols-md-3 g-4" id="lostItemsGrid">
+                    <!-- Dynamically populated via JS -->
+                </div>
+            </div>
+
+        <!-- ==================== CLAIMS HISTORY ==================== -->
+        <div id="claims-history-page" class="page-section w-100">
+            <h2 class="mb-4 fw-bold text-dark"><i class="bi bi-clock-history"></i> Resolved Claims History</h2>
+            <div class="card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3 px-4">Item ID</th>
+                                <th class="py-3">Description</th>
+                                <th class="py-3">Category</th>
+                                <th class="py-3">Claimed By (Matric ID)</th>
+                                <th class="py-3">Date Returned</th>
+                                <th class="py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimsTableBody">
+                            <!-- Dynamically populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-top text-center py-4 mt-auto w-100">
+        <div class="container">
+            <small class="text-muted fw-medium">&copy; 2026 FoundIt! Campus Lost & Found. IMS566 Project.</small>
+        </div>
+    </footer>
+    
+    </div> <!-- Close mainWrapper -->
+    </div> <!-- Close d-flex -->
+
+    <!-- Report Item Modal -->
+    <div class="modal fade" id="reportItemModal" tabindex="-1" aria-labelledby="reportItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-light rounded-top-3">
+                    <h5 class="modal-title fw-bold" id="reportItemModalLabel"><i class="bi bi-megaphone-fill text-primary"></i> Report a Found Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="reportForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Item Name</label>
+                            <input type="text" class="form-control" id="newItemName" placeholder="e.g. Blue Umbrella" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Category</label>
+                            <select class="form-select" id="newItemCategory" required>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Documents">Documents</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Location Found</label>
+                            <select class="form-select" id="newItemLocation" required>
+                                <option value="Main Library">Main Library</option>
+                                <option value="Cafeteria">Cafeteria</option>
+                                <option value="Lecture Halls">Lecture Halls</option>
+                                <option value="Sports Complex">Sports Complex</option>
+                                <option value="Bus Stop">Bus Stop</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="newItemDesc" rows="2" placeholder="e.g. Contains cash and a matric card" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Submit Report</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-light rounded-top-3">
+                    <h5 class="modal-title fw-bold" id="editItemModalLabel"><i class="bi bi-pencil-square text-warning"></i> Edit Lost Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editForm">
+                        <input type="hidden" id="editItemId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Item Name</label>
+                            <input type="text" class="form-control" id="editItemName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Category</label>
+                            <select class="form-select" id="editItemCategory" required>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Documents">Documents</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Location Found</label>
+                            <select class="form-select" id="editItemLocation" required>
+                                <option value="Main Library">Main Library</option>
+                                <option value="Cafeteria">Cafeteria</option>
+                                <option value="Lecture Halls">Lecture Halls</option>
+                                <option value="Sports Complex">Sports Complex</option>
+                                <option value="Bus Stop">Bus Stop</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="editItemDesc" rows="2" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Item Modal -->
+    <div class="modal fade" id="claimItemModal" tabindex="-1" aria-labelledby="claimItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-light rounded-top-3">
+                    <h5 class="modal-title fw-bold" id="claimItemModalLabel"><i class="bi bi-check-circle-fill text-success"></i> Claim Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="claimForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Student Matric ID</label>
+                            <!-- AUTO-FILLED VALUE -->
+                            <input type="number" class="form-control form-control-lg bg-light" id="claimMatricId" value="2026123456" required>
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> Auto-filled for testing purposes</small>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm">Confirm Claim</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Required for Modals) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Application Logic -->
+    <script>
+        let chartInstance = null;
+
+        let lostItemsData = [
+            { id: 'FI-1045', name: 'Black Leather Wallet', category: 'Accessories', location: 'Main Library', date: '12 Nov 2026', desc: 'Contains cash and a matric card.' },
+            { id: 'FI-1046', name: 'Apple AirPods Pro', category: 'Electronics', location: 'Lecture Halls', date: '10 Nov 2026', desc: 'White casing with a scratch.' },
+            { id: 'FI-1047', name: 'House Keys', category: 'Accessories', location: 'Cafeteria', date: '13 Nov 2026', desc: 'A bunch of 3 keys with a Marvel keychain.' },
+            { id: 'FI-1048', name: 'Student ID Card', category: 'Documents', location: 'Bus Stop', date: '13 Nov 2026', desc: 'Name: Ahmad bin Abu.' },
+            { id: 'FI-1049', name: 'MacBook Charger', category: 'Electronics', location: 'Main Library', date: '13 Nov 2026', desc: 'White 67W power adapter.' },
+            { id: 'FI-1050', name: 'Red Umbrella', category: 'Other', location: 'Sports Complex', date: '14 Nov 2026', desc: 'Foldable umbrella, left near the courts.' },
+            { id: 'FI-1051', name: 'Reading Glasses', category: 'Accessories', location: 'Lecture Halls', date: '14 Nov 2026', desc: 'Black frame, left on the front row desk.' },
+            { id: 'FI-1052', name: 'Software Eng. Notebook', category: 'Documents', location: 'Main Library', date: '14 Nov 2026', desc: 'Spiral notebook with handwritten notes.' },
+            { id: 'FI-1053', name: 'HydroFlask Water Bottle', category: 'Other', location: 'Sports Complex', date: '15 Nov 2026', desc: 'Blue, 32oz with stickers.' },
+            { id: 'FI-1054', name: 'Pineng Power Bank', category: 'Electronics', location: 'Cafeteria', date: '15 Nov 2026', desc: 'Black power bank 20000mAh.' },
+            { id: 'FI-1055', name: 'SanDisk 64GB Pendrive', category: 'Electronics', location: 'Lecture Halls', date: '15 Nov 2026', desc: 'Silver metallic body.' },
+            { id: 'FI-1056', name: 'Winter Scarf', category: 'Accessories', location: 'Bus Stop', date: '16 Nov 2026', desc: 'Grey wool scarf.' },
+            { id: 'FI-1057', name: 'Casio Scientific Calculator', category: 'Electronics', location: 'Main Library', date: '16 Nov 2026', desc: 'Model FX-570EX.' },
+            { id: 'FI-1058', name: 'Muji Pencil Case', category: 'Other', location: 'Lecture Halls', date: '17 Nov 2026', desc: 'Clear plastic, filled with pens.' },
+            { id: 'FI-1059', name: 'Nike Gym Bag', category: 'Other', location: 'Sports Complex', date: '17 Nov 2026', desc: 'Black duffel bag.' }
+        ];
+
+        let claimedItemsData = [
+            { id: '#FI-1042', name: 'Blue Umbrella', category: 'Accessories', claimedBy: '2024123456', date: '08 Nov 2026' },
+            { id: '#FI-1041', name: 'Logitech Mouse', category: 'Electronics', claimedBy: '2024987654', date: '05 Nov 2026' },
+            { id: '#FI-1040', name: 'iPhone 13 Case', category: 'Accessories', claimedBy: '2024112233', date: '04 Nov 2026' },
+            { id: '#FI-1039', name: 'Matric Card (Siti)', category: 'Documents', claimedBy: '2024445566', date: '03 Nov 2026' },
+            { id: '#FI-1038', name: 'Gold Ring', category: 'Accessories', claimedBy: '2024778899', date: '02 Nov 2026' },
+            { id: '#FI-1037', name: 'Denim Jacket', category: 'Other', claimedBy: '2024998877', date: '02 Nov 2026' },
+            { id: '#FI-1036', name: 'Adidas Cap', category: 'Accessories', claimedBy: '2024665544', date: '01 Nov 2026' },
+            { id: '#FI-1035', name: 'Keychron Keyboard', category: 'Electronics', claimedBy: '2024332211', date: '30 Oct 2026' },
+            { id: '#FI-1034', name: 'Dell Backpack', category: 'Other', claimedBy: '2024111222', date: '29 Oct 2026' },
+            { id: '#FI-1033', name: 'Ray-Ban Sunglasses', category: 'Accessories', claimedBy: '2024555666', date: '28 Oct 2026' }
+        ];
+
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify([{ email: 'student@uitm.edu.my', password: 'password123' }]));
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const users = JSON.parse(localStorage.getItem('users'));
+            const userExists = users.find(u => u.email === email && u.password === password);
+            
+            if (userExists) {
+                document.getElementById("loginAlert").classList.add("d-none");
+                document.getElementById("mainNav").classList.remove("d-none");
+                document.getElementById("mainNav").classList.add("d-flex");
+                document.getElementById("mobileHeader").classList.remove("d-none");
+                document.getElementById("mobileHeader").classList.add("d-flex");
+                document.getElementById("mainWrapper").classList.add("logged-in");
+                document.querySelector("main").classList.remove("justify-content-center");
+                renderLostItems();
+                renderClaimedItems();
+                updateDashboardStats();
+                showPage("dashboard-page");
+                renderChart(); 
+            } else {
+                document.getElementById("loginAlertMsg").innerText = "Invalid email or password.";
+                document.getElementById("loginAlert").classList.remove("d-none");
+            }
+        });
+
+        document.getElementById("registerForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const email = document.getElementById("regEmail").value;
+            const password = document.getElementById("regPassword").value;
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users.find(u => u.email === email)) {
+                document.getElementById("loginAlertMsg").innerText = "Email is already registered!";
+                document.getElementById("loginAlert").classList.remove("d-none");
+                return;
+            }
+            users.push({ email: email, password: password });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert("Registration successful! You can now log in.");
+            document.getElementById('tab-login').click();
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        });
+
+        function toggleSidebar() {
+            document.getElementById("mainNav").classList.toggle("open");
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll(".page-section").forEach(function(section) {
+                section.classList.remove("active");
+            });
+            document.getElementById(pageId).classList.add("active");
+            document.querySelectorAll(".nav-link").forEach(function(link) {
+                link.classList.remove("active");
+            });
+            const activeLink = document.querySelector(`.nav-link[onclick*="${pageId}"]`);
+            if (activeLink) activeLink.classList.add("active");
+            if(window.innerWidth <= 768) {
+                document.getElementById("mainNav").classList.remove("open");
+            }
+        }
+
+        function logout() {
+            document.getElementById("mainNav").classList.add("d-none");
+            document.getElementById("mainNav").classList.remove("d-flex", "open");
+            document.getElementById("mobileHeader").classList.add("d-none");
+            document.getElementById("mobileHeader").classList.remove("d-flex");
+            document.getElementById("mainWrapper").classList.remove("logged-in");
+            document.querySelector("main").classList.add("justify-content-center");
+            showPage('login-page');
+        }
+            
+        function renderLostItems() {
+            const grid = document.getElementById("lostItemsGrid");
+            grid.innerHTML = ""; 
+
+            lostItemsData.forEach(item => {
+                let iconClass = "bi-bag";
+                let colorClass = "secondary"; 
+                if (item.category === "Electronics") { iconClass = "bi-laptop"; colorClass = "primary"; }
+                else if (item.category === "Accessories") { iconClass = "bi-wallet2"; colorClass = "warning"; }
+                else if (item.category === "Documents") { iconClass = "bi-file-earmark-text"; colorClass = "info"; }
+                else if (item.category === "Other") { iconClass = "bi-boxes"; colorClass = "success"; }
+
+                const cardHTML = `
+                    <div class="col">
+                        <div class="card card-hover h-100 bg-white">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center text-${colorClass}" style="width: 48px; height: 48px; background-color: var(--bs-${colorClass}); --bs-bg-opacity: .1; font-size: 1.4rem;">
+                                        <i class="bi ${iconClass}"></i>
+                                    </div>
+                                    <span class="badge bg-light text-dark border shadow-sm">${item.category}</span>
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-2">${item.name}</h5>
+                                <p class="card-text text-muted small mb-4" style="line-height: 1.6;">${item.desc}</p>
+                                
+                                <div class="d-flex flex-column gap-2 mb-4 bg-light p-3 rounded-3 border">
+                                    <div class="d-flex align-items-center gap-2 text-secondary small fw-medium">
+                                        <i class="bi bi-geo-alt-fill text-danger"></i> ${item.location}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 text-secondary small fw-medium">
+                                        <i class="bi bi-calendar-event text-primary"></i> ${item.date}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent border-top-0 pb-4 pt-0 px-4 d-flex gap-2">
+                                <button class="btn btn-primary fw-bold flex-grow-1 shadow-sm" onclick="openClaimModal('${item.id}')">Claim Item</button>
+                                <button class="btn btn-light border text-dark" onclick="openEditModal('${item.id}')" title="Edit Item"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-light border text-danger" onclick="deleteItem('${item.id}')" title="Delete Item"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        function renderClaimedItems() {
+            const tbody = document.getElementById("claimsTableBody");
+            tbody.innerHTML = ""; 
+
+            claimedItemsData.forEach(item => {
+                const tr = `
+                    <tr>
+                        <td class="px-4 fw-bold text-secondary">${item.id}</td>
+                        <td class="fw-semibold">${item.name}</td>
+                        <td><span class="badge bg-light text-dark border">${item.category}</span></td>
+                        <td><i class="bi bi-person-badge text-primary"></i> ${item.claimedBy}</td>
+                        <td>${item.date}</td>
+                        <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Resolved</span></td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', tr);
+            });
+        }
+
+        function updateDashboardStats() {
+            const activeCount = lostItemsData.length;
+            const claimedCount = claimedItemsData.length;
+            const totalCount = activeCount + claimedCount;
+            const recoveryRate = totalCount === 0 ? 0 : Math.round((claimedCount / totalCount) * 100);
+
+            document.getElementById("stat-active").innerText = activeCount;
+            document.getElementById("stat-claimed").innerText = claimedCount;
+            document.getElementById("stat-total").innerText = totalCount;
+            document.getElementById("stat-recovery").innerText = recoveryRate + "%";
+
+            const categoryCounts = {};
+            lostItemsData.forEach(item => {
+                categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+            });
+            let topCat = "None";
+            let maxCount = 0;
+            for (const [cat, count] of Object.entries(categoryCounts)) {
+                if (count > maxCount) { maxCount = count; topCat = cat; }
+            }
+            document.getElementById("insight-category").innerText = topCat;
+
+            if (lostItemsData.length > 0) {
+                const latest = lostItemsData[0];
+                document.getElementById("insight-latest-name").innerText = latest.name;
+                document.getElementById("insight-latest-loc").innerHTML = `<i class="bi bi-geo-alt-fill text-danger"></i> ${latest.location}`;
+            } else {
+                document.getElementById("insight-latest-name").innerText = "No items available";
+                document.getElementById("insight-latest-loc").innerHTML = "-";
+            }
+        }
+
+        document.getElementById("reportForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const name = document.getElementById("newItemName").value;
+            const category = document.getElementById("newItemCategory").value;
+            const location = document.getElementById("newItemLocation").value;
+            const desc = document.getElementById("newItemDesc").value;
+            const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const newId = 'FI-' + Math.floor(Math.random() * 9000 + 1000);
+
+            lostItemsData.unshift({
+                id: newId,
+                name: name,
+                category: category,
+                location: location,
+                date: today,
+                desc: desc
+            });
+
+            const modalEl = document.getElementById('reportItemModal');
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalInstance.hide();
+            this.reset();
+            renderLostItems();
+            updateDashboardStats();
+            renderChart(); 
+        });
+        
+        function deleteItem(itemId) {
+            if(confirm("Are you sure you want to delete this item? This action cannot be undone.")) {
+                const itemIndex = lostItemsData.findIndex(item => item.id === itemId);
+                if (itemIndex > -1) {
+                    lostItemsData.splice(itemIndex, 1);
+                    renderLostItems();
+                    updateDashboardStats();
+                    renderChart();
+                }
+            }
+        }
+
+        function openEditModal(itemId) {
+            const item = lostItemsData.find(i => i.id === itemId);
+            if (item) {
+                document.getElementById('editItemId').value = item.id;
+                document.getElementById('editItemName').value = item.name;
+                document.getElementById('editItemCategory').value = item.category;
+                document.getElementById('editItemLocation').value = item.location;
+                document.getElementById('editItemDesc').value = item.desc;
+                
+                const modalEl = bootstrap.Modal.getOrCreateInstance(document.getElementById('editItemModal'));
+                modalEl.show();
+            }
+        }
+
+        document.getElementById("editForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editItemId').value;
+            const index = lostItemsData.findIndex(i => i.id === id);
+            
+            if(index > -1) {
+                lostItemsData[index].name = document.getElementById('editItemName').value;
+                lostItemsData[index].category = document.getElementById('editItemCategory').value;
+                lostItemsData[index].location = document.getElementById('editItemLocation').value;
+                lostItemsData[index].desc = document.getElementById('editItemDesc').value;
+                
+                const modalEl = document.getElementById('editItemModal');
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modalInstance.hide();
+                
+                renderLostItems();
+                updateDashboardStats();
+                renderChart();
+            }
+        });
+
+        let currentClaimItemId = null;
+
+        function openClaimModal(itemId) {
+            currentClaimItemId = itemId;
+            const modalEl = bootstrap.Modal.getOrCreateInstance(document.getElementById('claimItemModal'));
+            modalEl.show();
+        }
+
+        document.getElementById("claimForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const matricId = document.getElementById("claimMatricId").value;
+            const itemIndex = lostItemsData.findIndex(item => item.id === currentClaimItemId);
+            
+            if (itemIndex > -1) {
+                const claimedItem = lostItemsData.splice(itemIndex, 1)[0];
+                const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                claimedItemsData.unshift({
+                    id: '#' + claimedItem.id,
+                    name: claimedItem.name,
+                    category: claimedItem.category,
+                    claimedBy: matricId,
+                    date: today
+                });
+
+                const modalEl = document.getElementById('claimItemModal');
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modalInstance.hide();
+
+                renderLostItems();
+                renderClaimedItems();
+                updateDashboardStats();
+                renderChart(); 
+                showPage('claims-history-page');
+            }
+        });
+
+        function renderChart() {
+            const ctx = document.getElementById('locationChart');
+            if (chartInstance) chartInstance.destroy();
+
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#aaa394' : '#64748b';
+            
+            const locationCounts = {
+                'Main Library': 0, 'Cafeteria': 0, 'Lecture Halls': 0, 'Sports Complex': 0, 'Bus Stop': 0
+            };
+            
+            lostItemsData.forEach(item => {
+                if (locationCounts[item.location] !== undefined) {
+                    locationCounts[item.location]++;
+                }
+            });
+
+            const dataValues = [
+                locationCounts['Main Library'], locationCounts['Cafeteria'],
+                locationCounts['Lecture Halls'], locationCounts['Sports Complex'], locationCounts['Bus Stop']
+            ];
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Main Library', 'Cafeteria', 'Lecture Halls', 'Sports Complex', 'Bus Stop'],
+                    datasets: [{
+                        label: 'Quantity',
+                        data: dataValues,
+                        backgroundColor: ['#3b82f6', '#14b8a6', '#f59e0b', '#f43f5e', '#8b5cf6'],
+                        borderWidth: 3,
+                        borderColor: isDarkMode ? '#17191e' : '#ffffff',
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                color: textColor,
+                                font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: 500 },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: isDarkMode ? '#1d2026' : '#ffffff',
+                            titleColor: isDarkMode ? '#f0cf7a' : '#1e293b',
+                            bodyColor: isDarkMode ? '#f5f1e7' : '#475569',
+                            borderColor: isDarkMode ? 'rgba(214,173,85,0.3)' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) { return '  ' + context.raw + ' item(s)'; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                darkModeToggle.innerHTML = '<i class="bi bi-sun-fill me-2"></i> Light Mode';
+            } else {
+                darkModeToggle.innerHTML = '<i class="bi bi-moon-stars-fill me-2"></i> Dark Mode';
+            }
+            if (document.getElementById('dashboard-page').classList.contains('active')) {
+                renderChart();
+            }
+        });
+    </script>
+</body>
+</html>
